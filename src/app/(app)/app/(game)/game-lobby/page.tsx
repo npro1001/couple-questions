@@ -7,8 +7,22 @@ import Image from "next/image";
 import LobbyInfo from "@/components/lobby-info";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
+import { addUserToGame } from "@/lib/server-utils";
 
-export default async function GameLobbyPage() {
+type GameLobbyPageProps = {
+  searchParams: { [key: string]: string | string[] | undefined };
+};
+
+export default async function GameLobbyPage({
+  searchParams,
+}: GameLobbyPageProps) {
+  const gameId = searchParams.invite as string;
+  console.log("GAME ID FROM PARAMS: ", gameId);
+  if (gameId) {
+    await addUserToGame(gameId);
+    redirect("/app/game-lobby");
+  }
+
   const session = await auth();
   if (!session?.user) {
     redirect("/login");

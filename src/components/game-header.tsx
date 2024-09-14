@@ -32,9 +32,7 @@ export default function GameHeader() {
           asChild
           onClick={handleLeaveGame}
         >
-          <Link href="/app/dashboard">
-            <ArrowLeftIcon />
-          </Link>
+          <ArrowLeftIcon className="p-2" />
         </Button>
       </div>
       <p className="font-playwrite text-3xl">

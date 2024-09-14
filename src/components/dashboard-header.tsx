@@ -4,7 +4,6 @@ import Logo from "./logo";
 import { Button } from "./ui/button";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { Session } from "@/lib/types";
 import Link from "next/link";
 
 export default async function Header() {

@@ -13,20 +13,25 @@ type LobbyInfoProps = {
 };
 
 export default function LobbyInfo({ userId }: LobbyInfoProps) {
-  const { loading, gameId, participants, initializeGame, fetchParticipants } =
-    useGameStore();
+  const {
+    loading,
+    gameId,
+    participants,
+    storeInitializeGame,
+    storeFetchParticipants,
+  } = useGameStore();
 
   useEffect(() => {
     if (!gameId) {
-      initializeGame();
+      storeInitializeGame();
     }
-  }, [gameId, initializeGame]);
+  }, [gameId, storeInitializeGame]);
 
   useEffect(() => {
     if (gameId) {
-      fetchParticipants();
+      storeFetchParticipants();
     }
-  }, [gameId, fetchParticipants]);
+  }, [gameId, storeFetchParticipants]);
 
   if (!gameId || loading) {
     return (

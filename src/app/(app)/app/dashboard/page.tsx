@@ -1,5 +1,4 @@
 import DashboardCard from "@/components/dashboard-card";
-import Header from "@/components/dashboard-header";
 import React from "react";
 
 export default function DashboardPage() {

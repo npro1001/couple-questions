@@ -1,13 +1,8 @@
-import ContentBlock from "@/components/content-block";
-import { Button } from "@/components/ui/button";
-import React from "react";
-import UserInfo from "@/components/user-info";
-import InviteButton from "@/components/buttons/invite-button";
 import Image from "next/image";
 import LobbyInfo from "@/components/lobby-info";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { addUserToGame } from "@/lib/server-utils";
+import { serverAddUserToGame } from "@/lib/server-utils";
 
 type GameLobbyPageProps = {
   searchParams: { [key: string]: string | string[] | undefined };
@@ -17,9 +12,8 @@ export default async function GameLobbyPage({
   searchParams,
 }: GameLobbyPageProps) {
   const gameId = searchParams.invite as string;
-  console.log("GAME ID FROM PARAMS: ", gameId);
   if (gameId) {
-    await addUserToGame(gameId);
+    await serverAddUserToGame(gameId);
     redirect("/app/game-lobby");
   }
 

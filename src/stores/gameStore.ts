@@ -1,10 +1,14 @@
 import {
-  addInterest,
-  getGame,
-  getUserInfoById,
-  getUsersGame,
-} from "@/actions/actions";
+  actionGetGameDetails,
+  actionRemoveUserFromGame,
+} from "@/actions/game-actions";
+import {
+  actionAddUserInterest,
+  actionGetUserActiveGameId,
+  actionGetUserInfo,
+} from "@/actions/user-actions";
 import { create } from "zustand";
+
 type GameStore = {
   gameId: string | null;
   hostId: string | null;
@@ -15,9 +19,10 @@ type GameStore = {
   setHostId: (id: string) => void;
   setParticipantIds: (ids: string[]) => void;
   setParticipants: (participants: any[]) => void;
-  initializeGame: () => Promise<void>;
-  fetchParticipants: () => Promise<void>;
-  updateInterests: (userId: string, interest: string) => Promise<void>;
+  storeInitializeGame: () => Promise<void>;
+  storeFetchParticipants: () => Promise<void>;
+  storeUpdateInterests: (userId: string, interest: string) => Promise<void>;
+  storeLeaveGame: () => Promise<void>;
 };
 
 export const useGameStore = create<GameStore>((set) => ({
@@ -31,13 +36,13 @@ export const useGameStore = create<GameStore>((set) => ({
   setParticipantIds: (ids) => set({ participantIds: ids }),
   setParticipants: (participants) => set({ participants }),
 
-  initializeGame: async () => {
+  storeInitializeGame: async () => {
     try {
       set({ loading: true });
-      const activeGameId = await getUsersGame();
+      const activeGameId = await actionGetUserActiveGameId();
 
       if (activeGameId) {
-        const game = await getGame(activeGameId);
+        const game = await actionGetGameDetails(activeGameId);
         set({
           gameId: game.id,
           hostId: game.hostId,
@@ -46,12 +51,6 @@ export const useGameStore = create<GameStore>((set) => ({
         });
       } else {
         console.log("activeGameId on user NOT FOUND");
-        // const game = await createGame();
-        // set({
-        //   gameId: game.id,
-        //   hostId: game.hostId,
-        //   participantIds: game.participantIds,
-        // });
       }
     } catch (error) {
       console.error("Failed to initialize game", error);
@@ -59,12 +58,12 @@ export const useGameStore = create<GameStore>((set) => ({
     }
   },
 
-  fetchParticipants: async () => {
+  storeFetchParticipants: async () => {
     try {
       set({ loading: true });
       const { participantIds } = useGameStore.getState();
       const participantsData = await Promise.all(
-        participantIds.map((id) => getUserInfoById(id))
+        participantIds.map((id) => actionGetUserInfo(id))
       );
       set({ participants: participantsData, loading: false });
     } catch (error) {
@@ -73,9 +72,9 @@ export const useGameStore = create<GameStore>((set) => ({
     }
   },
 
-  updateInterests: async (userId, interest) => {
+  storeUpdateInterests: async (userId, interest) => {
     try {
-      const updatedUser = await addInterest(userId, interest);
+      const updatedUser = await actionAddUserInterest(userId, interest);
       set((state) => ({
         participants: state.participants.map((participant) =>
           participant.id === updatedUser.id ? updatedUser : participant
@@ -83,6 +82,30 @@ export const useGameStore = create<GameStore>((set) => ({
       }));
     } catch (error) {
       console.error("Failed to update interests", error);
+    }
+  },
+
+  storeLeaveGame: async () => {
+    try {
+      set({ loading: true });
+      const { gameId } = useGameStore.getState();
+      if (!gameId) {
+        console.error("No game to leave");
+        return;
+      }
+      await actionRemoveUserFromGame(gameId);
+
+      // Reset local game state
+      set({
+        gameId: null,
+        hostId: null,
+        participantIds: [],
+        participants: [],
+      });
+    } catch (error) {
+      console.error("Failed to leave game", error);
+    } finally {
+      set({ loading: false });
     }
   },
 }));

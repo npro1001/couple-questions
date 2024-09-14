@@ -3,9 +3,7 @@
 import React from "react";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
-import AuthFormBtn from "@/components/auth/auth-form-btn";
-import { useFormState } from "react-dom";
-import { logIn, signUp } from "@/actions/actions";
+import { actionLogIn } from "@/actions/user-actions";
 import { Button } from "../ui/button";
 import { useSearchParams } from "next/navigation";
 
@@ -21,16 +19,10 @@ export default function LogInForm() {
 
   // const [signUpError, dispatchSignUp] = useFormState(signUp, undefined); // undefined is the initial state
   // const [logInError, dispatchLogIn] = useFormState(logIn, undefined); // undefined is the initial state
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const formData = new FormData(e.target);
-    if (invite) {
-      console.log(invite);
-      formData.append("gameId", invite); // Pass invite as part of the form data
-      console.log(formData.get("gameId"));
-    }
-
-    await logIn(formData, callbackUrl);
+    const formData = new FormData(e.target as HTMLFormElement);
+    await actionLogIn(formData, callbackUrl);
   };
   return (
     // Would redirect to callbaclUrl here in this action={}

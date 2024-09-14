@@ -1,16 +1,14 @@
 "use client";
-import Link from "next/link";
+
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { auth } from "@/lib/auth";
-import { redirect } from "next/navigation";
-import { startNewGame } from "@/actions/actions";
+import { actionCreateGame } from "@/actions/game-actions";
 
 export default function NewGameBtn() {
   return (
     <Button
       variant={"default"}
-      onClick={() => startNewGame()}
+      onClick={() => actionCreateGame()}
       className="mt-4"
       asChild
     >

@@ -1,6 +1,5 @@
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { PlusIcon } from "@radix-ui/react-icons";
 import { NewInterestBtn } from "./buttons/new-interest-btn";
 
 type UserInfoProps = {

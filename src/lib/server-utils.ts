@@ -5,7 +5,7 @@ import prisma from "./db";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 
-export async function getUserByEmail(
+export async function serverGetUserByEmail(
   email: User["email"]
 ): Promise<User | null> {
   const user = await prisma.user.findUnique({
@@ -14,7 +14,7 @@ export async function getUserByEmail(
   return user;
 }
 
-export async function createUser(
+export async function serverCreateUser(
   name: User["name"],
   email: User["email"],
   hashedPassword: User["hashedPassword"]
@@ -29,7 +29,7 @@ export async function createUser(
   return user;
 }
 
-export async function createGame() {
+export async function serverCreateGame() {
   const session = await auth();
   if (!session?.user) {
     redirect("/login");
@@ -60,7 +60,120 @@ export async function createGame() {
   return { game, inviteLink };
 }
 
-export async function addUserToGame(gameId: string) {
+export async function serverRemoveUserFromGame(gameId: string) {
+  const session = await auth();
+  if (!session?.user) {
+    redirect("/login");
+  }
+
+  let game;
+  game = await prisma.game.findUnique({
+    where: { id: gameId },
+  });
+
+  if (!game) {
+    throw new Error("Game not found or user is not a participant");
+  }
+
+  // Remove user from the participants
+  await prisma.game.update({
+    where: { id: gameId },
+    data: {
+      participantIds: {
+        set: game.participantIds.filter((id: string) => id !== session.user.id),
+      },
+    },
+  });
+
+  // Get updated game object
+  game = await prisma.game.findUnique({
+    where: { id: gameId },
+  });
+
+  // If user is the host
+  if (game.hostId === session.user.id) {
+    console.log("User was the host");
+
+    // Change host
+    if (game.participantIds.length > 0) {
+      console.log("Changing host");
+      await prisma.game.update({
+        where: { id: gameId },
+        data: { hostId: game.participantIds[0] },
+      });
+
+      // Delete game
+    } else {
+      console.log("Deleting game");
+      await prisma.game.delete({
+        where: { id: gameId },
+      });
+    }
+  }
+
+  // Remove the activeGameId from the user's record
+  await prisma.user.update({
+    where: { id: session.user.id },
+    data: { activeGameId: null },
+  });
+}
+
+export async function serverGetUserActiveGameId() {
+  const session = await auth();
+  if (!session?.user) {
+    redirect("/login");
+    // throw new Error("User not authenticated");
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { activeGameId: true },
+  });
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  return user.activeGameId;
+}
+
+export async function serverGetGameDetails(gameId: string) {
+  const game = await prisma.game.findUnique({
+    where: { id: gameId },
+    select: {
+      id: true,
+      hostId: true,
+      participantIds: true,
+      updatedAt: true,
+      createdAt: true,
+    },
+  });
+
+  if (!game) {
+    throw new Error("Game not found");
+  }
+
+  return {
+    id: game.id,
+    hostId: game.hostId,
+    participantIds: game.participantIds.map((id: string) => id),
+  };
+}
+
+export async function serverGetUserInfo(userId: string) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true, name: true, interests: true },
+  });
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  return user;
+}
+
+export async function serverAddUserToGame(gameId: string) {
   console.log("ADDING USER TO GAME");
 
   const session = await auth();
@@ -97,114 +210,7 @@ export async function addUserToGame(gameId: string) {
   console.log(`User ${session.user.id} added to game ${gameId}`);
 }
 
-export async function getUserActiveGameId() {
-  const session = await auth();
-  if (!session?.user) {
-    redirect("/login");
-    // throw new Error("User not authenticated");
-  }
-
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: { activeGameId: true },
-  });
-
-  if (!user) {
-    throw new Error("User not found");
-  }
-
-  return user.activeGameId;
-}
-
-export async function getGameDetails(gameId: string) {
-  const game = await prisma.game.findUnique({
-    where: { id: gameId },
-    select: {
-      id: true,
-      hostId: true,
-      participantIds: true,
-      updatedAt: true,
-      createdAt: true,
-    },
-  });
-
-  if (!game) {
-    throw new Error("Game not found");
-  }
-
-  return {
-    id: game.id,
-    hostId: game.hostId,
-    participantIds: game.participantIds.map((id: string) => id),
-  };
-}
-
-// src/lib/server-utils.ts
-export async function getUserInfo(userId: string) {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { id: true, name: true, interests: true },
-  });
-
-  if (!user) {
-    throw new Error("User not found");
-  }
-
-  return user;
-}
-
-export async function removeUserFromGame(gameId: string) {
-  const session = await auth();
-  if (!session?.user) {
-    redirect("/login");
-    // throw new Error("User not authenticated");
-  }
-
-  // const game = await prisma.game.update({
-  //   where: { id: gameId },
-  //   data: {
-  //     participantIds: {
-  //       set: (
-  //         await prisma.game.findUnique({ where: { id: gameId } })
-  //       ).participantIds.filter((id: string) => id !== session.user.id),
-  //     },
-  //   },
-  // });
-  const game = await prisma.game.findUnique({
-    where: { id: gameId },
-  });
-
-  if (!game) {
-    throw new Error("Game not found or user is not a participant");
-  }
-
-  // Change hostId of the game
-  if (game.hostId === session.user.id) {
-    // If the user is the host, update the hostId to null
-    await prisma.game.update({
-      where: { id: gameId },
-      data: { hostId: null },
-    });
-  }
-
-  // Remove user from the participants
-  await prisma.game.update({
-    where: { id: gameId },
-    data: {
-      participantIds: {
-        set: game.participantIds.filter((id: string) => id !== session.user.id),
-      },
-    },
-  });
-
-  // Remove the activeGameId from the user's record
-  await prisma.user.update({
-    where: { id: session.user.id },
-    data: { activeGameId: null },
-  });
-}
-
-export async function addUserInterest(userId: string, interest: string[]) {
+export async function serverAddUserInterest(userId: string, interest: string) {
   const updatedUser = await prisma.user.update({
     where: { id: userId },
     data: {

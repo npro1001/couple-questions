@@ -1,6 +1,5 @@
 "use client";
 
-import React, { act, useState } from "react";
 import { Button } from "../ui/button";
 import {
   Dialog,
@@ -50,7 +49,6 @@ export default function InviteButton({
             </Label>
             <Input
               id="link"
-              // defaultValue={`${process.env.NEXT_PUBLIC_BASE_URL}/app/game-lobby`}
               defaultValue={`${process.env.NEXT_PUBLIC_BASE_URL}/app/game-lobby?invite=${gameId}`}
               readOnly
             />
@@ -62,7 +60,6 @@ export default function InviteButton({
             onClick={() =>
               navigator.clipboard.writeText(
                 `${process.env.NEXT_PUBLIC_BASE_URL}/app/game-lobby?invite=${gameId}`
-                // `${process.env.NEXT_PUBLIC_BASE_URL}/app/game-lobby`
               )
             }
           >

@@ -1,9 +1,9 @@
 import NextAuth, { NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
-import { getUserByEmail } from "./server-utils";
+import { serverGetUserByEmail } from "./server-utils";
 
-export const config: NextAuthConfig = {
+const config: NextAuthConfig = {
   pages: {
     signIn: "/login",
   },
@@ -20,7 +20,7 @@ export const config: NextAuthConfig = {
         const { email, password } = credentials;
 
         // Is there a user in the database with that email
-        const user = await getUserByEmail(email as string);
+        const user = await serverGetUserByEmail(email as string);
         if (!user) {
           console.log("No user found");
           return null;

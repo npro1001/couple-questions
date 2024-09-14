@@ -7,15 +7,35 @@ import AuthFormBtn from "@/components/auth/auth-form-btn";
 import { useFormState } from "react-dom";
 import { logIn, signUp } from "@/actions/actions";
 import { Button } from "../ui/button";
+import { useSearchParams } from "next/navigation";
 
 export default function LogInForm() {
+  const searchParams = useSearchParams();
+  const invite = searchParams.get("invite"); // Get the invite parameter from the URL
+  let callbackUrl;
+  if (invite) {
+    callbackUrl = `/app/game-lobby?invite=${invite}`;
+  } else {
+    callbackUrl = "/app/dashboard";
+  }
+
   // const [signUpError, dispatchSignUp] = useFormState(signUp, undefined); // undefined is the initial state
   // const [logInError, dispatchLogIn] = useFormState(logIn, undefined); // undefined is the initial state
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    if (invite) {
+      console.log(invite);
+      formData.append("gameId", invite); // Pass invite as part of the form data
+      console.log(formData.get("gameId"));
+    }
 
+    await logIn(formData, callbackUrl);
+  };
   return (
     // Would redirect to callbaclUrl here in this action={}
     // <form action={type === "logIn" ? dispatchLogIn : dispatchSignUp}>
-    <form action={logIn}>
+    <form onSubmit={handleSubmit}>
       <div className="space-y-1">
         <Label htmlFor="email">Email</Label>
         <Input

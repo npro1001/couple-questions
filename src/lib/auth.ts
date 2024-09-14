@@ -3,7 +3,7 @@ import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { getUserByEmail } from "./server-utils";
 
-const config: NextAuthConfig = {
+export const config: NextAuthConfig = {
   pages: {
     signIn: "/login",
   },
@@ -36,6 +36,8 @@ const config: NextAuthConfig = {
           return null;
         }
 
+        console.log("User found and password correct");
+        console.log(user);
         return user;
       },
     }),
@@ -74,7 +76,31 @@ const config: NextAuthConfig = {
       }
       return session;
     },
+    redirect: ({ url, baseUrl }) => {
+      console.log("Redirect - Url:     ", url);
+      console.log("Redirect - BaseUrl: ", baseUrl);
+
+      if (url === "/login") {
+        return url;
+      }
+
+      // For other actions, such as sign-in, handle callbackUrl logic
+      const callbackUrl = new URL(url).searchParams.get("callbackUrl");
+
+      // Allow the callbackUrl if it's from the same origin (security best practice)
+      if (callbackUrl && callbackUrl.startsWith(baseUrl)) {
+        return callbackUrl; // Redirect to the callbackUrl
+      }
+
+      // Default redirect behavior
+      return baseUrl;
+    },
   },
 } satisfies NextAuthConfig;
 
-export const { auth, signIn, signOut } = NextAuth(config);
+export const {
+  auth,
+  signIn,
+  signOut,
+  handlers: { GET, POST },
+} = NextAuth(config);

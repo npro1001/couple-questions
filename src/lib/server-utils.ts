@@ -55,7 +55,46 @@ export async function createGame() {
     data: { activeGameId: game.id },
   });
 
-  return game;
+  const inviteLink = `${process.env.NEXT_PUBLIC_BASE_URL}/app/game-lobby?invite=${game.id}`;
+
+  return { game, inviteLink };
+}
+
+export async function addUserToGame(gameId: string) {
+  console.log("ADDING USER TO GAME");
+
+  const session = await auth();
+  if (!session?.user) {
+    console.log("NO SESSION");
+    redirect("/login");
+  }
+
+  console.log("UPDATING GAME: ", gameId);
+  const game = await prisma.game.findUnique({
+    where: { id: gameId },
+  });
+
+  if (!game) {
+    console.log("Game not found");
+    throw new Error("Game not found");
+  }
+
+  console.log("UPDATING USER");
+  await prisma.game.update({
+    where: { id: gameId },
+    data: {
+      participantIds: {
+        push: session.user.id, // Add the user to the participants list
+      },
+    },
+  });
+
+  await prisma.user.update({
+    where: { id: session.user.id },
+    data: { activeGameId: gameId },
+  });
+
+  console.log(`User ${session.user.id} added to game ${gameId}`);
 }
 
 export async function getUserActiveGameId() {
@@ -163,9 +202,6 @@ export async function removeUserFromGame(gameId: string) {
     where: { id: session.user.id },
     data: { activeGameId: null },
   });
-
-  // Redirect to the dashboard
-  redirect("/app/dashboard");
 }
 
 export async function addUserInterest(userId: string, interest: string[]) {

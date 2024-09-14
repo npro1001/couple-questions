@@ -1,10 +1,5 @@
 "use client";
 
-import {
-  createGame,
-  getGameDetails,
-  getUserActiveGameId,
-} from "@/lib/server-utils";
 import { useGameStore } from "@/stores/gameStore";
 import React, { useEffect } from "react";
 import ContentBlock from "./content-block";

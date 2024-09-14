@@ -15,6 +15,7 @@ import {
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Copy } from "lucide-react";
+import { useGameStore } from "@/stores/gameStore";
 
 type InviteButtonProps = {
   disabled?: boolean;
@@ -27,6 +28,7 @@ export default function InviteButton({
   children,
   onClick,
 }: InviteButtonProps) {
+  const gameId = useGameStore((state) => state.gameId);
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -48,7 +50,8 @@ export default function InviteButton({
             </Label>
             <Input
               id="link"
-              defaultValue="https://couplequestions.ai/join/123456"
+              // defaultValue={`${process.env.NEXT_PUBLIC_BASE_URL}/app/game-lobby`}
+              defaultValue={`${process.env.NEXT_PUBLIC_BASE_URL}/app/game-lobby?invite=${gameId}`}
               readOnly
             />
           </div>
@@ -58,7 +61,8 @@ export default function InviteButton({
             className="px-3"
             onClick={() =>
               navigator.clipboard.writeText(
-                `${window.location.origin}/join/123456`
+                `${process.env.NEXT_PUBLIC_BASE_URL}/app/game-lobby?invite=${gameId}`
+                // `${process.env.NEXT_PUBLIC_BASE_URL}/app/game-lobby`
               )
             }
           >

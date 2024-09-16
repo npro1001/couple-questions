@@ -13,25 +13,16 @@ type LobbyInfoProps = {
 };
 
 export default function LobbyInfo({ userId }: LobbyInfoProps) {
-  const {
-    loading,
-    gameId,
-    participants,
-    storeInitializeGame,
-    storeFetchParticipants,
-  } = useGameStore();
+  const { loading, gameId, participants, storeInitializeGame } = useGameStore();
 
   useEffect(() => {
-    if (!gameId) {
-      storeInitializeGame();
-    }
+    const initializeGame = async () => {
+      if (!gameId) {
+        await storeInitializeGame();
+      }
+    };
+    initializeGame();
   }, [gameId, storeInitializeGame]);
-
-  useEffect(() => {
-    if (gameId) {
-      storeFetchParticipants();
-    }
-  }, [gameId, storeFetchParticipants]);
 
   if (!gameId || loading) {
     return (
@@ -44,8 +35,11 @@ export default function LobbyInfo({ userId }: LobbyInfoProps) {
 
   return (
     <ContentBlock className="flex flex-col p-8 gap-4 bg-transparent border-transparent shadow-none max-w-[700px]">
-      <div className="flex shadow-lg rounded-md items-center justify-between p-6 gap-4">
-        {participants.map((participant) => (
+      {participants.map((participant) => (
+        <div
+          key={participant.id}
+          className="flex shadow-lg rounded-md items-center justify-between p-6 gap-4"
+        >
           <UserInfo
             key={participant.id}
             name={participant.name}
@@ -53,9 +47,10 @@ export default function LobbyInfo({ userId }: LobbyInfoProps) {
             initials={participant.name[0]}
             {...(userId && { userId })}
           />
-        ))}
-        <p className="text-xl font-semibold">⚽️</p>
-      </div>
+          <p className="text-xl font-semibold">⚽️</p>
+        </div>
+      ))}
+
       <div className="flex gap-4 w-full">
         <InviteButton />
         <Button className="w-full">Start Game</Button>

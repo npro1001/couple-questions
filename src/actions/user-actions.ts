@@ -6,6 +6,7 @@ import {
   serverCreateUser,
   serverGetUserActiveGameId,
   serverGetUserInfo,
+  serverRemoveUserInterest,
 } from "@/lib/server-utils";
 import bcrypt from "bcryptjs";
 import { redirect } from "next/navigation";
@@ -83,4 +84,11 @@ export async function actionGetUserInfo(userId: string) {
 }
 export async function actionAddUserInterest(userId: string, interest: string) {
   return await serverAddUserInterest(userId, interest);
+}
+
+export async function actionRemoveUserInterest(
+  userId: string,
+  interest: string
+) {
+  return await serverRemoveUserInterest(userId, interest);
 }

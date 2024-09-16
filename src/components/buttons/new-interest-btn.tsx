@@ -16,12 +16,13 @@ import { Badge } from "../ui/badge";
 
 type NewInterestBtnProps = {
   userId: string;
+  className?: string;
 };
 
 export function NewInterestBtn({ userId }: NewInterestBtnProps) {
   const [interest, setInterest] = useState("");
-  const storeUpdateInterests = useGameStore(
-    (state) => state.storeUpdateInterests
+  const storeAddUserInterest = useGameStore(
+    (state) => state.storeAddUserInterest
   );
 
   const handleAddInterest = async () => {
@@ -29,7 +30,7 @@ export function NewInterestBtn({ userId }: NewInterestBtnProps) {
       return; // Do nothing if the input is empty
     }
     if (userId) {
-      await storeUpdateInterests(userId, interest);
+      await storeAddUserInterest(userId, interest);
       setInterest(""); // Clear the input after adding the interest
     } else {
       console.error("User is not authenticated");

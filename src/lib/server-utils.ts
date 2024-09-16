@@ -70,6 +70,32 @@ export async function serverAddUserInterest(userId: string, interest: string) {
   return updatedUser;
 }
 
+export async function serverRemoveUserInterest(
+  userId: string,
+  interest: string
+) {
+  const updatedUser = await prisma.user.update({
+    where: { id: userId },
+    data: {
+      interests: {
+        set: (
+          await prisma.user.findUnique({ where: { id: userId } })
+        ).interests.filter((i: string) => i !== interest),
+      },
+    },
+  });
+
+  try {
+    const activeGameId = await serverGetUserActiveGameId();
+    triggerParticipantInterestChange(activeGameId, userId);
+  } catch (error) {
+    console.error("Error triggering Pusher event:", error);
+    throw error;
+  }
+
+  return updatedUser;
+}
+
 //* SERVER GAME UTILS */
 
 export async function serverCreateGame() {

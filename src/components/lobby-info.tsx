@@ -45,7 +45,7 @@ export default function LobbyInfo({ userId }: LobbyInfoProps) {
             name={participant.name}
             interests={participant.interests}
             initials={participant.name[0]}
-            {...(userId && { userId })}
+            {...(userId == participant.id && { userId })}
           />
           <p className="text-xl font-semibold">⚽️</p>
         </div>

@@ -3,9 +3,7 @@
 import React from "react";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
-import AuthFormBtn from "@/components/auth/auth-form-btn";
-import { useFormState } from "react-dom";
-import { logIn, signUp } from "@/actions/actions";
+import { actionCreateUser } from "@/actions/user-actions";
 import { Button } from "../ui/button";
 
 export default function SignUpForm() {
@@ -15,7 +13,7 @@ export default function SignUpForm() {
   return (
     // Would redirect to callbaclUrl here in this action={}
     // <form action={type === "logIn" ? dispatchLogIn : dispatchSignUp}>
-    <form action={signUp}>
+    <form action={actionCreateUser}>
       <div className="space-y-1 mb-4 ">
         <Label htmlFor="name">Username</Label>
         <Input

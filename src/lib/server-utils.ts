@@ -4,6 +4,13 @@ import { User } from ".prisma/client";
 import prisma from "./db";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import {
+  triggerParticipantInterestChange,
+  triggerParticipantJoinedEvent,
+  triggerParticipantLeftEvent,
+} from "./pusherServer";
+
+//* SERVER USER UTILS */
 
 export async function serverGetUserByEmail(
   email: User["email"]
@@ -28,6 +35,42 @@ export async function serverCreateUser(
   });
   return user;
 }
+
+export async function serverGetUserInfo(userId: string) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true, name: true, interests: true },
+  });
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  return user;
+}
+
+export async function serverAddUserInterest(userId: string, interest: string) {
+  const updatedUser = await prisma.user.update({
+    where: { id: userId },
+    data: {
+      interests: {
+        push: interest,
+      },
+    },
+  });
+
+  try {
+    const activeGameId = await serverGetUserActiveGameId();
+    triggerParticipantInterestChange(activeGameId, userId);
+  } catch (error) {
+    console.error("Error triggering Pusher event:", error);
+    throw error;
+  }
+
+  return updatedUser;
+}
+
+//* SERVER GAME UTILS */
 
 export async function serverCreateGame() {
   const session = await auth();
@@ -116,6 +159,14 @@ export async function serverRemoveUserFromGame(gameId: string) {
     where: { id: session.user.id },
     data: { activeGameId: null },
   });
+
+  // Trigger a Pusher event to notify all participants
+  try {
+    triggerParticipantLeftEvent(gameId, session.user.id);
+  } catch (error) {
+    console.error("Error triggering Pusher event:", error);
+    throw error;
+  }
 }
 
 export async function serverGetUserActiveGameId() {
@@ -160,19 +211,6 @@ export async function serverGetGameDetails(gameId: string) {
   };
 }
 
-export async function serverGetUserInfo(userId: string) {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { id: true, name: true, interests: true },
-  });
-
-  if (!user) {
-    throw new Error("User not found");
-  }
-
-  return user;
-}
-
 export async function serverAddUserToGame(gameId: string) {
   console.log("ADDING USER TO GAME");
 
@@ -207,23 +245,13 @@ export async function serverAddUserToGame(gameId: string) {
     data: { activeGameId: gameId },
   });
 
+  // Trigger a Pusher event to notify all participants
+  try {
+    triggerParticipantJoinedEvent(gameId, session.user.id);
+  } catch (error) {
+    console.error("Error triggering Pusher event:", error);
+    throw error;
+  }
+
   console.log(`User ${session.user.id} added to game ${gameId}`);
-}
-
-export async function serverAddUserInterest(userId: string, interest: string) {
-  const updatedUser = await prisma.user.update({
-    where: { id: userId },
-    data: {
-      interests: {
-        push: interest,
-      },
-    },
-  });
-
-  // await pusher.trigger('game-channel', 'interests-updated', {
-  //   userId: updatedUser.id,
-  //   interests: updatedUser.interests,
-  // });
-
-  return updatedUser;
 }

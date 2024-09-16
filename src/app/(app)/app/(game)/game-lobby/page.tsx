@@ -3,6 +3,7 @@ import LobbyInfo from "@/components/lobby-info";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { serverAddUserToGame } from "@/lib/server-utils";
+import { Toaster } from "react-hot-toast";
 
 type GameLobbyPageProps = {
   searchParams: { [key: string]: string | string[] | undefined };
@@ -41,6 +42,7 @@ export default async function GameLobbyPage({
       <div className="flex flex-row gap-4 justify-center items-center">
         <LobbyInfo userId={session.user.id} />
       </div>
+      <Toaster />
     </main>
   );
 }

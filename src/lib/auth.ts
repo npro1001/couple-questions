@@ -77,8 +77,8 @@ const config: NextAuthConfig = {
       return session;
     },
     redirect: ({ url, baseUrl }) => {
-      console.log("Redirect - Url:     ", url);
-      console.log("Redirect - BaseUrl: ", baseUrl);
+      // console.log("Redirect - Url:     ", url);
+      // console.log("Redirect - BaseUrl: ", baseUrl);
 
       if (url === "/login") {
         return url;

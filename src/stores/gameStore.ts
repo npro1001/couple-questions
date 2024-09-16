@@ -6,6 +6,7 @@ import {
   actionAddUserInterest,
   actionGetUserActiveGameId,
   actionGetUserInfo,
+  actionRemoveUserInterest,
 } from "@/actions/user-actions";
 import {
   cleanupPusher,
@@ -29,8 +30,8 @@ type GameStore = {
   setParticipantIds: (ids: string[]) => void;
   setParticipants: (participants: User[]) => void;
   storeInitializeGame: () => Promise<void>;
-  // storeFetchParticipants: () => Promise<void>;
-  storeUpdateInterests: (userId: string, interest: string) => Promise<void>;
+  storeAddUserInterest: (userId: string, interest: string) => Promise<void>;
+  storeRemoveUserInterest: (userId: string, interest: string) => Promise<void>;
   storeLeaveGame: () => Promise<void>;
 };
 
@@ -124,18 +125,12 @@ export const useGameStore = create<GameStore>((set) => ({
                 data.userId
               );
               set((state) => ({
-                participants: [
-                  ...state.participants.filter(
-                    (participant) =>
-                      participant.id !== participantWhoseInterestsChanged.id
-                  ),
-                  participantWhoseInterestsChanged,
-                ],
+                participants: state.participants.map((participant) =>
+                  participant.id === participantWhoseInterestsChanged.id
+                    ? participantWhoseInterestsChanged
+                    : participant
+                ),
               }));
-              // const participantsData = await Promise.all(
-              //   participantIds.map((id) => actionGetUserInfo(id))
-              // );
-              // set(() => ({ participants: participantsData }));
             }
           );
 
@@ -158,16 +153,21 @@ export const useGameStore = create<GameStore>((set) => ({
     }
   },
 
-  storeUpdateInterests: async (userId, interest) => {
+  storeAddUserInterest: async (userId, interest) => {
     try {
-      const updatedUser = await actionAddUserInterest(userId, interest);
-      set((state) => ({
-        participants: state.participants.map((participant) =>
-          participant.id === updatedUser.id ? updatedUser : participant
-        ),
-      }));
+      await actionAddUserInterest(userId, interest);
+      // state is change in pusher callback
     } catch (error) {
       console.error("Failed to update interests", error);
+    }
+  },
+
+  storeRemoveUserInterest: async (userId, interest) => {
+    try {
+      await actionRemoveUserInterest(userId, interest);
+      // state is change in pusher callback
+    } catch (error) {
+      console.error("Failed to remove interest", error);
     }
   },
 

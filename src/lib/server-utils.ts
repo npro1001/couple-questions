@@ -5,6 +5,7 @@ import prisma from "./db";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import {
+  triggerGameStartedEvent,
   triggerParticipantInterestChange,
   triggerParticipantJoinedEvent,
   triggerParticipantLeftEvent,
@@ -221,6 +222,7 @@ export async function serverGetGameDetails(gameId: string) {
       id: true,
       hostId: true,
       participantIds: true,
+      currentQuestion: true,
       updatedAt: true,
       createdAt: true,
     },
@@ -234,6 +236,7 @@ export async function serverGetGameDetails(gameId: string) {
     id: game.id,
     hostId: game.hostId,
     participantIds: game.participantIds.map((id: string) => id),
+    currentQuestion: game.currentQuestion,
   };
 }
 
@@ -280,4 +283,32 @@ export async function serverAddUserToGame(gameId: string) {
   }
 
   console.log(`User ${session.user.id} added to game ${gameId}`);
+}
+
+export async function serverStartGame(gameId: string) {
+  const session = await auth();
+  if (!session?.user) {
+    redirect("/login");
+  }
+
+  const game = await prisma.game.update({
+    where: { id: gameId },
+    data: {
+      status: "ACTIVE",
+    },
+  });
+
+  if (!game) {
+    throw new Error("Game not found");
+  }
+
+  // Trigger a Pusher event to notify all participants
+  try {
+    triggerGameStartedEvent(gameId);
+  } catch (error) {
+    console.error("Error triggering Pusher event:", error);
+    throw error;
+  }
+
+  return game;
 }

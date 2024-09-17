@@ -31,7 +31,7 @@ export default function UserInfo({
       </Avatar>
       <div className="flex flex-col gap-2">
         <p className="text-2xl">{name}</p>
-        <div className="max-w-full overflow-x-auto">
+        <div className="max-w-full overflow-x-hidden">
           <div className="flex space-x-2">
             {interests.map((interest) => (
               <Badge

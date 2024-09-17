@@ -7,6 +7,8 @@ import InviteButton from "./buttons/invite-button";
 import { Button } from "./ui/button";
 import UserInfo from "./user-info";
 import { Skeleton } from "./ui/skeleton";
+import { useGameLogic } from "@/lib/hooks";
+import { actionStartGame } from "@/actions/game-actions";
 
 type LobbyInfoProps = {
   userId: string;
@@ -14,6 +16,7 @@ type LobbyInfoProps = {
 
 export default function LobbyInfo({ userId }: LobbyInfoProps) {
   const { loading, gameId, participants, storeInitializeGame } = useGameStore();
+  useGameLogic();
 
   useEffect(() => {
     const initializeGame = async () => {
@@ -53,7 +56,13 @@ export default function LobbyInfo({ userId }: LobbyInfoProps) {
 
       <div className="flex gap-4 w-full">
         <InviteButton />
-        <Button className="w-full">Start Game</Button>
+        {/* // TODO check is host */}
+        <Button
+          className="w-full"
+          onClick={async () => await actionStartGame(gameId)}
+        >
+          Start Game
+        </Button>
       </div>
     </ContentBlock>
   );

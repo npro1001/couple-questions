@@ -70,3 +70,16 @@ export async function triggerParticipantInterestChange(
     throw error;
   }
 }
+
+export async function triggerGameStartedEvent(gameId: string) {
+  try {
+    console.log(`Triggering Pusher event for game-${gameId}, game started`);
+    const pusher = initializePusherServer();
+    await pusher.trigger(`game-${gameId}`, "game-started", {
+      // userId: userId, // TODO need to send gameid?
+    });
+  } catch (error) {
+    console.error("Error triggering Pusher event:", error);
+    throw error;
+  }
+}

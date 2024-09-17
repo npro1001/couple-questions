@@ -4,6 +4,7 @@ import {
   serverCreateGame,
   serverGetGameDetails,
   serverRemoveUserFromGame,
+  serverStartGame,
 } from "@/lib/server-utils";
 import { redirect } from "next/navigation";
 
@@ -25,4 +26,13 @@ export async function actionRemoveUserFromGame(gameId: string) {
 export async function actionGetGameDetails(gameId: string) {
   const game = await serverGetGameDetails(gameId);
   return game;
+}
+
+export async function actionStartGame(gameId: string) {
+  const game = await serverStartGame(gameId);
+  if (!game) {
+    throw new Error("Failed to start game");
+  }
+
+  // redirect(`/app/game/${game.id}`); handled client side
 }

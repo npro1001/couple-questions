@@ -2,6 +2,7 @@ import NextAuth, { NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { serverGetUserByEmail } from "./server-utils";
+import { logInFormSchema } from "./validations";
 
 const config: NextAuthConfig = {
   pages: {
@@ -16,13 +17,16 @@ const config: NextAuthConfig = {
     Credentials({
       // Email and password provider
       async authorize(credentials) {
-        // Runs on logic
-        const { email, password } = credentials;
+        // Runs on Log In
+        const validatedFormData = logInFormSchema.safeParse(credentials);
+        if (!validatedFormData.success) {
+          return null;
+        }
+        const { email, password } = validatedFormData.data;
 
-        // Is there a user in the database with that email
-        const user = await serverGetUserByEmail(email as string);
+        // Find user in the database with that email
+        const user = await serverGetUserByEmail(email);
         if (!user) {
-          console.log("No user found");
           return null;
         }
 
@@ -32,12 +36,9 @@ const config: NextAuthConfig = {
           user.hashedPassword
         );
         if (!passwordsMatch) {
-          console.log("Invalid credentials");
           return null;
         }
 
-        console.log("User found and password correct");
-        console.log(user);
         return user;
       },
     }),

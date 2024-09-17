@@ -3,7 +3,8 @@ import LobbyInfo from "@/components/lobby-info";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { serverAddUserToGame } from "@/lib/server-utils";
-import { Toaster } from "react-hot-toast";
+import toast, { Toaster } from "react-hot-toast";
+import { gameLobbySearchParamsSchema } from "@/lib/validations";
 
 type GameLobbyPageProps = {
   searchParams: { [key: string]: string | string[] | undefined };
@@ -12,18 +13,27 @@ type GameLobbyPageProps = {
 export default async function GameLobbyPage({
   searchParams,
 }: GameLobbyPageProps) {
-  const gameId = searchParams.invite as string;
+  const session = await auth();
+  if (!session?.user) {
+    redirect("/login");
+  }
+
+  const validatedGameLobbySearchParams =
+    gameLobbySearchParamsSchema.safeParse(searchParams);
+  if (!validatedGameLobbySearchParams.success) {
+    redirect("/app/dashboard");
+  }
+  const { invite: gameId } = validatedGameLobbySearchParams.data;
   if (gameId) {
     await serverAddUserToGame(gameId);
     redirect("/app/game-lobby");
   }
 
-  const session = await auth();
-  if (!session?.user) {
-    redirect("/login");
-  }
   return (
     <main>
+      {/* {searchParams && searchParams.invite && (
+        <GameIDValidator gameId={searchParams.invite as string} />
+      )} */}
       <div className="flex justify-between items-center py-8">
         <h1 className="text-2xl">
           <span className="font-semibold">Game</span>Lobby
@@ -42,7 +52,6 @@ export default async function GameLobbyPage({
       <div className="flex flex-row gap-4 justify-center items-center">
         <LobbyInfo userId={session.user.id} />
       </div>
-      <Toaster />
     </main>
   );
 }

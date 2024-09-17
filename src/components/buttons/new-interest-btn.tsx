@@ -13,6 +13,8 @@ import { redirect } from "next/navigation";
 import { useState } from "react";
 import { useGameStore } from "@/stores/gameStore";
 import { Badge } from "../ui/badge";
+import { interestSchema } from "@/lib/validations";
+import toast from "react-hot-toast";
 
 type NewInterestBtnProps = {
   userId: string;
@@ -29,14 +31,21 @@ export function NewInterestBtn({ userId }: NewInterestBtnProps) {
     if (interest.trim() === "") {
       return; // Do nothing if the input is empty
     }
+    const validatedInterest = interestSchema.safeParse(interest);
+    if (!validatedInterest.success) {
+      toast.error("Interest can't contain special characters");
+      return;
+    }
+    const interestV = validatedInterest.data;
     if (userId) {
-      await storeAddUserInterest(userId, interest);
+      await storeAddUserInterest(userId, interestV);
       setInterest(""); // Clear the input after adding the interest
     } else {
       console.error("User is not authenticated");
       redirect("/login");
     }
   };
+
   return (
     <Dialog>
       <DialogTrigger>
@@ -46,14 +55,15 @@ export function NewInterestBtn({ userId }: NewInterestBtnProps) {
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Edit profile</DialogTitle>
+          <DialogTitle>Add an interest 🧐</DialogTitle>
           <DialogDescription>Its fun</DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
             <Input
               id="interest"
-              className="col-span-3"
+              className="col-span-4"
+              placeholder="starwars before disney"
               value={interest}
               onChange={(e) => setInterest(e.target.value)}
             />

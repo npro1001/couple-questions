@@ -11,25 +11,40 @@ import {
 import bcrypt from "bcryptjs";
 import { redirect } from "next/navigation";
 import { AuthError } from "next-auth";
+import { log } from "console";
+import { logInFormSchema, signUpFormSchema } from "@/lib/validations";
 
-// export async actionfunction logIn(prevState: unknown, formData: unknown) {
-export async function actionLogIn(formData: FormData, callbackUrl: string) {
+export async function actionLogIn(prevState: unknown, formData: unknown) {
   if (!(formData instanceof FormData)) {
-    console.log("Invalid form data");
-    return { message: "Invalid form data" };
+    return { message: "Invalid form data 1" };
   }
 
-  const formDataObject = Object.fromEntries(formData.entries());
+  const validatedFormDataObject = logInFormSchema.safeParse(
+    Object.fromEntries(formData.entries())
+  );
+  if (!validatedFormDataObject.success) {
+    const errors = validatedFormDataObject.error.format();
+    console.log(errors);
+    if (errors.invite !== undefined) {
+      return { message: "Invite link is invalid" };
+    } else {
+      return { message: "Invalid form data" };
+    }
+  }
 
-  console.log("CALLBACK URL ", callbackUrl);
+  const { invite: gameId } = validatedFormDataObject.data;
+  let callbackUrl;
+  if (gameId && gameId !== "") {
+    callbackUrl = `/app/game-lobby?invite=${gameId}`;
+  } else {
+    callbackUrl = "/app/dashboard";
+  }
 
   try {
     await signIn("credentials", {
-      ...formDataObject,
-      callbackUrl,
+      ...validatedFormDataObject.data,
       redirect: false,
     });
-
     redirect(callbackUrl);
   } catch (error) {
     if (error instanceof AuthError) {
@@ -50,14 +65,33 @@ export async function actionLogOut() {
   await signOut({ redirectTo: "/login", redirect: true });
 }
 
-// export async actionfunction signUp(prevState: unknown, formData: unknown) {
-export async function actionCreateUser(formData: FormData) {
+export async function actionCreateUser(prevState: unknown, formData: unknown) {
   if (!(formData instanceof FormData)) {
     return { message: "Invalid form data" };
   }
 
-  const name = formData.get("name") as string;
-  const email = formData.get("email") as string;
+  const validatedFormDataObject = signUpFormSchema.safeParse(
+    Object.fromEntries(formData.entries())
+  );
+  if (!validatedFormDataObject.success) {
+    const errors = validatedFormDataObject.error.format();
+    console.log(errors);
+    if (errors.invite !== undefined) {
+      return { message: "Invite link is invalid" };
+    } else {
+      return { message: `Invalid form data` };
+    }
+  }
+
+  const { invite: gameId } = validatedFormDataObject.data;
+  let callbackUrl;
+  if (gameId && gameId !== "") {
+    callbackUrl = `/app/game-lobby?invite=${gameId}`;
+  } else {
+    callbackUrl = "/app/dashboard";
+  }
+
+  const { name, email, password } = validatedFormDataObject.data;
   const hashedPassword = await bcrypt.hash(
     formData.get("password") as string,
     10

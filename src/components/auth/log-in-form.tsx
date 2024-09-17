@@ -6,28 +6,20 @@ import { Input } from "../ui/input";
 import { actionLogIn } from "@/actions/user-actions";
 import { Button } from "../ui/button";
 import { useSearchParams } from "next/navigation";
+import { useFormState } from "react-dom";
+import LogInBtn from "./log-in-btn";
 
 export default function LogInForm() {
   const searchParams = useSearchParams();
-  const invite = searchParams.get("invite"); // Get the invite parameter from the URL
-  let callbackUrl;
-  if (invite) {
-    callbackUrl = `/app/game-lobby?invite=${invite}`;
-  } else {
-    callbackUrl = "/app/dashboard";
-  }
+  const invite = searchParams.get("invite"); // Get the invite parameter from the URL -- added to formdata
 
-  // const [signUpError, dispatchSignUp] = useFormState(signUp, undefined); // undefined is the initial state
-  // const [logInError, dispatchLogIn] = useFormState(logIn, undefined); // undefined is the initial state
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.target as HTMLFormElement);
-    await actionLogIn(formData, callbackUrl);
-  };
+  const [logInError, dispatchActionLogIn] = useFormState(
+    actionLogIn,
+    undefined
+  ); // undefined is the initial state
+
   return (
-    // Would redirect to callbaclUrl here in this action={}
-    // <form action={type === "logIn" ? dispatchLogIn : dispatchSignUp}>
-    <form onSubmit={handleSubmit}>
+    <form action={dispatchActionLogIn}>
       <div className="space-y-1">
         <Label htmlFor="email">Email</Label>
         <Input
@@ -44,20 +36,17 @@ export default function LogInForm() {
         <Input
           className="border-zinc-400"
           type="password"
-          id="email"
+          id="password"
           name="password"
           required
           maxLength={100}
         />
       </div>
-      <Button className="w-full">Log In</Button>
-      {/* <AuthFormBtn type={type} /> */}
-      {/* {signUpError && (
-        <p className="text-red-500 text-sm mt-2">{signUpError.message}</p>
-      )}
+      <input type="hidden" name="invite" value={invite || ""} />
       {logInError && (
-        <p className="text-red-500 text-sm mt-2">{logInError.message}</p>
-      )} */}
+        <p className="text-red-500 text-sm mt-2 mb-4">{logInError.message}</p>
+      )}
+      <LogInBtn />
     </form>
   );
 }

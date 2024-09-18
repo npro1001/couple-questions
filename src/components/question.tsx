@@ -1,13 +1,9 @@
 "use client";
 
 import { useGameStore } from "@/stores/gameStore";
-import React, { useEffect } from "react";
 
 export default function Question() {
-  const { currentQuestion, storeInitializeGame } = useGameStore();
+  const currentQuestion = useGameStore((state) => state.currentQuestion);
 
-  useEffect(() => {
-    storeInitializeGame();
-  }, [currentQuestion]);
   return <div>{currentQuestion}</div>;
 }

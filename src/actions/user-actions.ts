@@ -4,14 +4,15 @@ import { signIn, signOut } from "@/lib/auth";
 import {
   serverAddUserInterest,
   serverCreateUser,
+  serverGetAuthedUserInfo,
   serverGetUserActiveGameId,
   serverGetUserInfo,
   serverRemoveUserInterest,
+  serverUseQCoin,
 } from "@/lib/server-utils";
 import bcrypt from "bcryptjs";
 import { redirect } from "next/navigation";
 import { AuthError } from "next-auth";
-import { log } from "console";
 import { logInFormSchema, signUpFormSchema } from "@/lib/validations";
 
 export async function actionLogIn(prevState: unknown, formData: unknown) {
@@ -83,19 +84,8 @@ export async function actionCreateUser(prevState: unknown, formData: unknown) {
     }
   }
 
-  const { invite: gameId } = validatedFormDataObject.data;
-  let callbackUrl;
-  if (gameId && gameId !== "") {
-    callbackUrl = `/app/game-lobby?invite=${gameId}`;
-  } else {
-    callbackUrl = "/app/dashboard";
-  }
-
   const { name, email, password } = validatedFormDataObject.data;
-  const hashedPassword = await bcrypt.hash(
-    formData.get("password") as string,
-    10
-  );
+  const hashedPassword = await bcrypt.hash(password, 10);
 
   const user = await serverCreateUser(name, email, hashedPassword);
   if (!user) {
@@ -116,6 +106,10 @@ export async function actionGetUserInfo(userId: string) {
   const user = await serverGetUserInfo(userId);
   return user;
 }
+export async function actionGetAuthedUserInfo() {
+  const user = await serverGetAuthedUserInfo();
+  return user;
+}
 export async function actionAddUserInterest(userId: string, interest: string) {
   return await serverAddUserInterest(userId, interest);
 }
@@ -125,4 +119,8 @@ export async function actionRemoveUserInterest(
   interest: string
 ) {
   return await serverRemoveUserInterest(userId, interest);
+}
+
+export async function actionUseQCoin() {
+  return await serverUseQCoin();
 }

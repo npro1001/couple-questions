@@ -9,7 +9,7 @@ export default function NewGameBtn() {
     <Button
       variant={"default"}
       onClick={() => actionCreateGame()}
-      className="mt-4"
+      className="mt-4 cursor-pointer"
       asChild
     >
       <p>New game</p>

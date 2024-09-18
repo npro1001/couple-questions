@@ -5,12 +5,13 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
+  DialogOverlay,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { redirect } from "next/navigation";
-import { useState } from "react";
+import { MouseEvent, useState } from "react";
 import { useGameStore } from "@/stores/gameStore";
 import { Badge } from "../ui/badge";
 import { interestSchema } from "@/lib/validations";
@@ -27,7 +28,8 @@ export function NewInterestBtn({ userId }: NewInterestBtnProps) {
     (state) => state.storeAddUserInterest
   );
 
-  const handleAddInterest = async () => {
+  const handleAddInterest = async (e: MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
     if (interest.trim() === "") {
       return; // Do nothing if the input is empty
     }
@@ -48,12 +50,15 @@ export function NewInterestBtn({ userId }: NewInterestBtnProps) {
 
   return (
     <Dialog>
-      <DialogTrigger>
+      <DialogTrigger onClick={(e) => e.stopPropagation()}>
         <Badge className="rounded-xl bg-transparent text-black border-black hover:bg-black/20">
           +
         </Badge>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent
+        className="sm:max-w-[425px]"
+        onClick={(e) => e.stopPropagation()}
+      >
         <DialogHeader>
           <DialogTitle>Add an interest 🧐</DialogTitle>
           <DialogDescription>Its fun</DialogDescription>

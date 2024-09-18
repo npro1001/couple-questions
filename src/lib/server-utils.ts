@@ -50,6 +50,29 @@ export async function serverGetUserInfo(userId: string) {
   return user;
 }
 
+export async function serverGetAuthedUserInfo() {
+  const session = await auth();
+  if (!session?.user) {
+    redirect("/login");
+  }
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: {
+      id: true,
+      name: true,
+      interests: true,
+      qCoins: true,
+      qSkips: true,
+    },
+  });
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  return user;
+}
+
 export async function serverAddUserInterest(userId: string, interest: string) {
   const updatedUser = await prisma.user.update({
     where: { id: userId },
@@ -75,6 +98,16 @@ export async function serverRemoveUserInterest(
   userId: string,
   interest: string
 ) {
+  const session = await auth();
+  if (!session?.user) {
+    redirect("/login");
+  }
+
+  // Only users can remove their own interests
+  if (session.user.id !== userId) {
+    return null;
+  }
+
   const updatedUser = await prisma.user.update({
     where: { id: userId },
     data: {
@@ -126,7 +159,6 @@ export async function serverCreateGame() {
   });
 
   const inviteLink = `${process.env.NEXT_PUBLIC_BASE_URL}/app/game-lobby?invite=${game.id}`;
-
   return { game, inviteLink };
 }
 
@@ -311,4 +343,20 @@ export async function serverStartGame(gameId: string) {
   }
 
   return game;
+}
+
+export async function serverUseQCoin() {
+  const session = await auth();
+  if (!session?.user) {
+    redirect("login");
+  }
+
+  const user = await prisma.user.update({
+    where: { id: session.user.id },
+    data: {
+      qCoins: { decrement: 1 },
+    },
+  });
+
+  return user;
 }

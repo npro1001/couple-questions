@@ -4,6 +4,7 @@ import {
 } from "@/actions/game-actions";
 import {
   actionAddUserInterest,
+  actionGetAuthedUserInfo,
   actionGetUserActiveGameId,
   actionGetUserInfo,
   actionRemoveUserInterest,
@@ -40,12 +41,12 @@ type GameStore = {
 
 export const useGameStore = create<GameStore>((set, get) => ({
   gameId: null,
-  hostId: null,
   participantIds: [],
   participants: [],
   loading: false,
+  hostId: null,
   isHost: false, // To track whether the user is the host
-  currentQuestion: "Somethin somethin",
+  currentQuestion: "...",
   hasPusherSubscribed: false, // To ensure we don't double-subscribe the host
   setGameId: (id) => set({ gameId: id }),
   setHostId: (id) => set({ hostId: id }),
@@ -118,7 +119,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       });
 
       // Optionally bind to a subscription error event
-      channel.bind("pusher:subscription_error", (status) => {
+      channel.bind("pusher:subscription_error", (status: string) => {
         console.error("Failed to subscribe to channel", status);
       });
 
@@ -144,9 +145,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
     try {
       set({ loading: true });
       const activeGameId = await actionGetUserActiveGameId();
+      const { id: userId } = await actionGetAuthedUserInfo();
 
       if (activeGameId) {
         const game = await actionGetGameDetails(activeGameId);
+        set({ isHost: game.hostId === userId });
 
         // Fetch participants
         const { participantIds } = useGameStore.getState();
@@ -176,6 +179,16 @@ export const useGameStore = create<GameStore>((set, get) => ({
   storeAddUserInterest: async (userId, interest) => {
     try {
       await actionAddUserInterest(userId, interest);
+      set((state) => ({
+        participants: state.participants.map((participant) =>
+          participant.id === userId
+            ? {
+                ...participant,
+                interests: [...participant.interests, interest],
+              }
+            : participant
+        ),
+      }));
       // state is change in pusher callback
     } catch (error) {
       console.error("Failed to update interests", error);
@@ -185,6 +198,16 @@ export const useGameStore = create<GameStore>((set, get) => ({
   storeRemoveUserInterest: async (userId, interest) => {
     try {
       await actionRemoveUserInterest(userId, interest);
+      set((state) => ({
+        participants: state.participants.map((participant) =>
+          participant.id === userId
+            ? {
+                ...participant,
+                interests: participant.interests.filter((i) => i !== interest),
+              }
+            : participant
+        ),
+      }));
       // state is change in pusher callback
     } catch (error) {
       console.error("Failed to remove interest", error);
@@ -199,8 +222,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         return;
       }
       await actionRemoveUserFromGame(gameId);
-      const CHANNEL_NAME = "game-channel"; // !
-      unsubscribeFromChannel(`game-${CHANNEL_NAME}`);
+      unsubscribeFromChannel(`game-${gameId}`);
       cleanupPusher(); // Clean up the Pusher client when leaving the game
       console.log("Pusher unsubscribed");
 

@@ -71,12 +71,16 @@ const config: Config = {
             transform: "translate(0px, 0px) scale(1)",
           },
         },
+        unveil: {
+          "0%": { transform: "translateX(-100%)" }, // Starts off the screen from the left
+          "100%": { transform: "translateX(0)" }, // Ends fully visible
+        },
       },
       animation: {
         blob: "blob 7s infinite",
+        unveil: "unveil 0.7s ease-out forwards", // Unveil animation with smooth easing
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
 };
 export default config;

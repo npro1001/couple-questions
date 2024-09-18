@@ -2,7 +2,6 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { NewInterestBtn } from "./buttons/new-interest-btn";
 import { useGameStore } from "@/stores/gameStore";
-import { Button } from "./ui/button";
 
 type UserInfoProps = {
   userId?: string;

@@ -75,10 +75,25 @@ const config: Config = {
           "0%": { transform: "translateX(-100%)" }, // Starts off the screen from the left
           "100%": { transform: "translateX(0)" }, // Ends fully visible
         },
+        moveAvatars: {
+          "0%": { transform: "translateX(10%)" }, // Initial position (slightly overlapped)
+          "100%": { transform: "translateX(-50%)" }, // Final position (fully expanded)
+        },
+        moveAvatarsOpposite: {
+          "0%": { transform: "translateX(-10%)" }, // Initial position (slightly overlapped)
+          "100%": { transform: "translateX(50%)" }, // Final position (fully expanded)
+        },
+        fadeUp: {
+          "0%": { opacity: "0", transform: "translateY(10px)" }, // Start invisible and slightly below
+          "100%": { opacity: "1", transform: "translateY(0)" }, // Fully visible, normal position
+        },
       },
       animation: {
         blob: "blob 7s infinite",
         unveil: "unveil 0.7s ease-out forwards", // Unveil animation with smooth easing
+        moveAvatars: "moveAvatars 0.7s ease-in-out forwards",
+        moveAvatarsOpposite: "moveAvatarsOpposite 0.7s ease-in-out forwards",
+        fadeUp: "fadeUp 0.7s ease-in-out forwards 0.7s", // Add delay to match avatar movement
       },
     },
   },

@@ -7,6 +7,9 @@ import {
   serverStartGame,
 } from "@/lib/server-utils";
 import { redirect } from "next/navigation";
+import { openai } from "@ai-sdk/openai";
+import { streamText } from "ai";
+import { Configuration, OpenAIApi } from "openai-edge";
 
 export async function actionCreateGame() {
   const { game } = await serverCreateGame();
@@ -35,4 +38,21 @@ export async function actionStartGame(gameId: string) {
   }
 
   // redirect(`/app/game/${game.id}`); handled client side
+}
+
+export async function actionStreamNextQuestion() {
+  const configuration = new Configuration({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
+  // const openai = new OpenAIApi(configuration);
+
+  const result = await streamText({
+    model: openai("gpt-4o"),
+    prompt: "Ask me an amazing question",
+  });
+
+  for await (const textPart of result.textStream) {
+    console.log(textPart);
+  }
+  // stream next question
 }

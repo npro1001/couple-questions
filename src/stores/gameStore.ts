@@ -15,6 +15,7 @@ import {
   unsubscribeFromChannel,
 } from "@/lib/pusherClient";
 import { User } from "@prisma/client";
+import { useChat } from "ai/react";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import toast from "react-hot-toast";
 import { create } from "zustand";
@@ -37,6 +38,7 @@ type GameStore = {
   storeAddUserInterest: (userId: string, interest: string) => Promise<void>;
   storeRemoveUserInterest: (userId: string, interest: string) => Promise<void>;
   storeLeaveGame: () => Promise<void>;
+  setCurrentQuestion: (q: string) => void;
 };
 
 export const useGameStore = create<GameStore>((set, get) => ({
@@ -240,4 +242,5 @@ export const useGameStore = create<GameStore>((set, get) => ({
       set({ loading: false });
     }
   },
+  setCurrentQuestion: (question) => set({ currentQuestion: question }),
 }));

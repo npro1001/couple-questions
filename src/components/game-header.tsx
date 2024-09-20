@@ -1,4 +1,5 @@
 import LeaveGameBtn from "./buttons/leave-game-btn";
+import GameParticipants from "./game-participants";
 
 export default function GameHeader() {
   return (
@@ -9,7 +10,9 @@ export default function GameHeader() {
       <p className="font-playwrite text-3xl">
         <span className="font-bold">Couple Questions</span>
       </p>
-      <div className="flex flex-1 justify-end"></div>
+      <div className="flex flex-1 justify-end">
+        <GameParticipants />
+      </div>
     </header>
   );
 }

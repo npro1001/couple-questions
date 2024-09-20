@@ -5,6 +5,7 @@ import { auth } from "@/lib/auth";
 import { serverAddUserToGame } from "@/lib/server-utils";
 import toast, { Toaster } from "react-hot-toast";
 import { gameLobbySearchParamsSchema } from "@/lib/validations";
+import UserCoins from "@/components/user-coins";
 
 type GameLobbyPageProps = {
   searchParams: { [key: string]: string | string[] | undefined };
@@ -48,6 +49,7 @@ export default async function GameLobbyPage({
             <Image src="/skip.png" alt="q-coin-image" width={25} height={25} />
           </div>
         </div>
+        {/* <UserCoins /> */}
       </div>
       <div className="flex flex-row gap-4 justify-center items-center">
         <LobbyInfo userId={session.user.id} />

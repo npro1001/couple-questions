@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useGameStore } from "@/stores/gameStore";
 import { useChat } from "ai/react";
+import { actionSetQuestion } from "@/actions/game-actions";
 
 export function useGameLogic() {
   const router = useRouter();
@@ -18,12 +19,14 @@ export function useGameLogic() {
 export function useFetchNextQuestion() {
   const { append, messages } = useChat();
   const setCurrentQuestion = useGameStore((state) => state.setCurrentQuestion);
+  const gameId = useGameStore((state) => state.gameId);
 
   // Function to fetch the next question
   const fetchNextQuestion = async () => {
     // Predefined string to send to the AI
     console.log("Fetching next question");
-    const predefinedQuestion = "Ask me an awesome question";
+    const predefinedQuestion =
+      "Ask me a question that will insight conversation. This is for a card game, so it can be dirty and provacative as the audience is mature adults.";
 
     // Send the predefined string to the AI
     append({
@@ -43,6 +46,7 @@ export function useFetchNextQuestion() {
     });
 
     setCurrentQuestion(response as string);
+    await actionSetQuestion(gameId!, response as string);
   };
 
   // Trigger fetching the next question when the hook is first used

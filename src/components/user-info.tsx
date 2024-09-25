@@ -2,6 +2,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { NewInterestBtn } from "./buttons/new-interest-btn";
 import { useGameStore } from "@/stores/gameStore";
+import { CrownIcon } from "lucide-react";
 
 type UserInfoProps = {
   userId?: string;

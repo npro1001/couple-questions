@@ -6,6 +6,10 @@ import { serverAddUserToGame } from "@/lib/server-utils";
 import toast, { Toaster } from "react-hot-toast";
 import { gameLobbySearchParamsSchema } from "@/lib/validations";
 import UserCoins from "@/components/user-coins";
+import { GameSettings } from "@/components/game-settings";
+import ContentBlock from "@/components/content-block";
+import { Button } from "@/components/ui/button";
+import LobbyActions from "@/components/lobby-actions";
 
 type GameLobbyPageProps = {
   searchParams: { [key: string]: string | string[] | undefined };
@@ -31,10 +35,7 @@ export default async function GameLobbyPage({
   }
 
   return (
-    <main>
-      {/* {searchParams && searchParams.invite && (
-        <GameIDValidator gameId={searchParams.invite as string} />
-      )} */}
+    <main className="min-h-screen flex flex-col">
       <div className="flex justify-between items-center py-8">
         <h1 className="text-2xl">
           <span className="font-semibold">Game</span>Lobby
@@ -51,9 +52,17 @@ export default async function GameLobbyPage({
         </div>
         {/* <UserCoins /> */}
       </div>
-      <div className="flex flex-row gap-4 justify-center items-center">
-        <LobbyInfo userId={session.user.id} />
+      <div className="flex flex-col gap-4 justify-center items-center">
+        <ContentBlock className="flex flex-col p-8 gap-4 bg-transparent border-transparent shadow-none max-w-[700px]">
+          <LobbyInfo userId={session.user.id} />
+          <GameSettings />
+        </ContentBlock>
       </div>
+      <footer className="w-full bg-gray-300 p-8 shadow-2xl fixed bottom-0 left-0">
+        <div className="max-w-[700px] mx-auto w-full">
+          <LobbyActions />
+        </div>
+      </footer>
     </main>
   );
 }

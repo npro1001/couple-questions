@@ -1,4 +1,3 @@
-import { NONAME } from "dns";
 import z from "zod";
 
 const alphanumericPattern = /^[a-zA-Z0-9]*$/;

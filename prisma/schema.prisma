@@ -62,6 +62,8 @@ model Game {
   participantIds  String[] @db.ObjectId
   status          String   @default("LOBBY") // Possible values: 'LOBBY', 'ACTIVE', 'INACTIVE'
   currentQuestion String   @default("")
+  questionTypes   String[] @default(["getToKnowEachother"])
+  pocketLevel     Int      @default(3)
   updatedAt       DateTime @updatedAt
   createdAt       DateTime @default(now())
 }

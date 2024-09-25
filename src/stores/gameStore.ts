@@ -1,6 +1,8 @@
 import {
   actionGetGameDetails,
   actionRemoveUserFromGame,
+  actionUpdatePocketLevel,
+  actionUpdateQuestionTypes,
 } from "@/actions/game-actions";
 import {
   actionAddUserInterest,
@@ -15,7 +17,7 @@ import {
   unsubscribeFromChannel,
 } from "@/lib/pusherClient";
 import { User } from "@prisma/client";
-import { useChat } from "ai/react";
+import { debounce, DebouncedFunc } from "lodash";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import toast from "react-hot-toast";
 import { create } from "zustand";
@@ -28,6 +30,8 @@ type GameStore = {
   loading: boolean;
   isHost: boolean; // To track whether the user is the host
   currentQuestion: string;
+  questionTypes: string[];
+  pocketLevel: number;
   hasPusherSubscribed: boolean; // To ensure we don't double-subscribe the host
   setGameId: (id: string) => void;
   setHostId: (id: string) => void;
@@ -38,6 +42,14 @@ type GameStore = {
   storeAddUserInterest: (userId: string, interest: string) => Promise<void>;
   storeRemoveUserInterest: (userId: string, interest: string) => Promise<void>;
   storeLeaveGame: () => Promise<void>;
+  debouncedUpdateQuestionTypes: DebouncedFunc<
+    (newTypes: string[]) => Promise<void>
+  >;
+  storeUpdateQuestionTypes: (newTypes: string[]) => void;
+  debouncedUpdatePocketLevel: DebouncedFunc<
+    (newLevel: number) => Promise<void>
+  >;
+  storeUpdatePocketLevel: (newLevel: number) => void;
   setCurrentQuestion: (q: string) => void;
 };
 
@@ -49,6 +61,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
   hostId: null,
   isHost: false, // To track whether the user is the host
   currentQuestion: "...",
+  questionTypes: ["getToKnowEachother"],
+  pocketLevel: 3,
   hasPusherSubscribed: false, // To ensure we don't double-subscribe the host
   setGameId: (id) => set({ gameId: id }),
   setHostId: (id) => set({ hostId: id }),
@@ -164,6 +178,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
           currentQuestion: game.currentQuestion,
           participantIds: game.participantIds,
           participants: participantsData,
+          questionTypes: game.questionTypes,
+          pocketLevel: game.pocketLevel,
         });
 
         // Set up Pusher for the host immediately to receive real-time updates
@@ -243,4 +259,49 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }
   },
   setCurrentQuestion: (question) => set({ currentQuestion: question }),
+  // Debounced API call for updating question types
+  debouncedUpdateQuestionTypes: debounce(async (newTypes) => {
+    const { gameId } = get();
+    if (!gameId) return;
+    await actionUpdateQuestionTypes(gameId, newTypes);
+    toast.success("Question types changed");
+  }, 1000),
+
+  // Debounced API call for updating pocket level
+  debouncedUpdatePocketLevel: debounce(async (newLevel) => {
+    const { gameId } = get();
+    if (!gameId) return;
+    await actionUpdatePocketLevel(gameId, newLevel);
+    toast.success("Pocket level changed");
+  }, 500),
+
+  // Store update for question types with immediate state change and debounced API call
+  storeUpdateQuestionTypes: (newTypes) => {
+    const { isHost } = get();
+    if (!isHost) {
+      toast.error("Only the host can change game settings");
+      return;
+    }
+
+    // Update the UI immediately
+    set({ questionTypes: newTypes });
+
+    // Trigger the debounced server-side update
+    get().debouncedUpdateQuestionTypes(newTypes);
+  },
+
+  // Store update for pocket level with immediate state change and debounced API call
+  storeUpdatePocketLevel: (newLevel) => {
+    const { isHost } = get();
+    if (!isHost) {
+      toast.error("Only the host can change game settings");
+      return;
+    }
+
+    // Update the UI immediately
+    set({ pocketLevel: newLevel });
+
+    // Trigger the debounced server-side update
+    get().debouncedUpdatePocketLevel(newLevel);
+  },
 }));

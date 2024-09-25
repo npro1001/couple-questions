@@ -4,7 +4,10 @@ import {
   serverCreateGame,
   serverGetGameDetails,
   serverRemoveUserFromGame,
+  serverSetQuestion,
   serverStartGame,
+  serverUpdateGamePocketLevel,
+  serverUpdateGameQuestionTypes,
 } from "@/lib/server-utils";
 import { redirect } from "next/navigation";
 import { openai } from "@ai-sdk/openai";
@@ -40,19 +43,20 @@ export async function actionStartGame(gameId: string) {
   // redirect(`/app/game/${game.id}`); handled client side
 }
 
-export async function actionStreamNextQuestion() {
-  const configuration = new Configuration({
-    apiKey: process.env.OPENAI_API_KEY,
-  });
-  // const openai = new OpenAIApi(configuration);
+export async function actionSetQuestion(gameId: string, question: string) {
+  return await serverSetQuestion(gameId, question);
+}
 
-  const result = await streamText({
-    model: openai("gpt-4o"),
-    prompt: "Ask me an amazing question",
-  });
+export async function actionUpdateQuestionTypes(
+  gameId: string,
+  newTypes: string[]
+) {
+  return await serverUpdateGameQuestionTypes(gameId, newTypes);
+}
 
-  for await (const textPart of result.textStream) {
-    console.log(textPart);
-  }
-  // stream next question
+export async function actionUpdatePocketLevel(
+  gameId: string,
+  newLevel: number
+) {
+  return await serverUpdateGamePocketLevel(gameId, newLevel);
 }

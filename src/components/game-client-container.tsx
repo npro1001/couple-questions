@@ -15,7 +15,7 @@ export default function GameClientContainer({
   //   );
 
   const { initializeUser } = useUserStore();
-  const { storeInitializeGame, participants } = useGameStore();
+  const { storeInitializeGame } = useGameStore();
 
   useEffect(() => {
     console.log("GameClientContainer useEffect");

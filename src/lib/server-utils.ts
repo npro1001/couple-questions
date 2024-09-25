@@ -255,6 +255,8 @@ export async function serverGetGameDetails(gameId: string) {
       hostId: true,
       participantIds: true,
       currentQuestion: true,
+      questionTypes: true,
+      pocketLevel: true,
       updatedAt: true,
       createdAt: true,
     },
@@ -269,6 +271,8 @@ export async function serverGetGameDetails(gameId: string) {
     hostId: game.hostId,
     participantIds: game.participantIds.map((id: string) => id),
     currentQuestion: game.currentQuestion,
+    questionTypes: game.questionTypes,
+    pocketLevel: game.pocketLevel,
   };
 }
 
@@ -359,4 +363,60 @@ export async function serverUseQCoin() {
   });
 
   return user;
+}
+
+export async function serverSetQuestion(gameId: string, question: string) {
+  const session = await auth();
+  if (!session?.user) {
+    redirect("login");
+  }
+
+  const game = await prisma.game.update({
+    where: { id: gameId },
+    data: {
+      currentQuestion: question,
+    },
+  });
+
+  return game;
+
+  // TODO trigger a pusher event
+}
+
+export async function serverUpdateGameQuestionTypes(
+  gameId: string,
+  questionTypes: string[]
+) {
+  const session = await auth();
+  if (!session?.user) {
+    redirect("login");
+  }
+
+  const game = await prisma.game.update({
+    where: { id: gameId },
+    data: {
+      questionTypes: questionTypes,
+    },
+  });
+
+  return game;
+}
+
+export async function serverUpdateGamePocketLevel(
+  gameId: string,
+  pocketLevel: number
+) {
+  const session = await auth();
+  if (!session?.user) {
+    redirect("login");
+  }
+
+  const game = await prisma.game.update({
+    where: { id: gameId },
+    data: {
+      pocketLevel: pocketLevel,
+    },
+  });
+
+  return game;
 }

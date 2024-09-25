@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { useFetchNextQuestion } from "@/lib/hooks";
 import { useUserStore } from "@/stores/userStore";
 import { ArrowRightIcon } from "lucide-react";
-import { useEffect } from "react";
 
 export default function NextQuestionBtn() {
   const decrementQCoins = useUserStore((state) => state.decrementQCoins);

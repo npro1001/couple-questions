@@ -2,21 +2,17 @@
 
 import { useGameStore } from "@/stores/gameStore";
 import React, { useEffect } from "react";
-import ContentBlock from "./content-block";
-import InviteButton from "./buttons/invite-button";
-import { Button } from "./ui/button";
 import UserInfo from "./user-info";
 import { Skeleton } from "./ui/skeleton";
-import { useGameLogic } from "@/lib/hooks";
-import { actionStartGame } from "@/actions/game-actions";
+import { CrownIcon } from "lucide-react";
 
 type LobbyInfoProps = {
   userId: string;
 };
 
 export default function LobbyInfo({ userId }: LobbyInfoProps) {
-  const { loading, gameId, participants, storeInitializeGame } = useGameStore();
-  useGameLogic();
+  const { loading, gameId, hostId, participants, storeInitializeGame } =
+    useGameStore();
 
   useEffect(() => {
     const initializeGame = async () => {
@@ -30,14 +26,15 @@ export default function LobbyInfo({ userId }: LobbyInfoProps) {
   if (!gameId || loading) {
     return (
       <Skeleton>
-        <div className="p-4 gap-4 bg-transparent border-transparent shadow-none w-[700px]" />
-        <div className="p-4 gap-4 bg-transparent border-transparent shadow-none w-[700px]" />
+        {/* <div className="p-4 gap-4 bg-transparent border-transparent shadow-none w-[700px]"> */}
+        <div className="rounded-full h-24 w-24 bg-transparent shadow-none"></div>
+        {/* </div> */}
       </Skeleton>
     );
   }
 
   return (
-    <ContentBlock className="flex flex-col p-8 gap-4 bg-transparent border-transparent shadow-none max-w-[700px]">
+    <>
       {participants.map((participant) => (
         <div
           key={participant.id}
@@ -50,20 +47,13 @@ export default function LobbyInfo({ userId }: LobbyInfoProps) {
             initials={participant.name[0]}
             {...(userId == participant.id && { userId })}
           />
-          <p className="text-xl font-semibold">⚽️</p>
+          {participant.id === hostId && <CrownIcon />}
+          {/* <p className="text-xl font-semibold">
+            {" "}
+            <CrownIcon />
+          </p> */}
         </div>
       ))}
-
-      <div className="flex gap-4 w-full">
-        <InviteButton />
-        {/* // TODO check is host */}
-        <Button
-          className="w-full"
-          onClick={async () => await actionStartGame(gameId)}
-        >
-          Start Game
-        </Button>
-      </div>
-    </ContentBlock>
+    </>
   );
 }

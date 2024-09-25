@@ -8,7 +8,9 @@ export default function NewGameBtn() {
   return (
     <Button
       variant={"default"}
-      onClick={() => actionCreateGame()}
+      onClick={async () => {
+        await actionCreateGame();
+      }}
       className="mt-4 cursor-pointer"
       asChild
     >

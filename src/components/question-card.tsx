@@ -1,3 +1,5 @@
+"use client";
+import { useGameStore } from "@/stores/gameStore";
 import Question from "./question";
 import UserCoins from "./user-coins";
 

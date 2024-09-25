@@ -379,7 +379,6 @@ export async function serverSetQuestion(gameId: string, question: string) {
   });
 
   return game;
-
   // TODO trigger a pusher event
 }
 
@@ -400,6 +399,7 @@ export async function serverUpdateGameQuestionTypes(
   });
 
   return game;
+  // TODO trigger a pusher event
 }
 
 export async function serverUpdateGamePocketLevel(
@@ -419,4 +419,5 @@ export async function serverUpdateGamePocketLevel(
   });
 
   return game;
+  // TODO trigger a pusher event
 }

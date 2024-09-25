@@ -33,6 +33,9 @@ type GameStore = {
   questionTypes: string[];
   pocketLevel: number;
   hasPusherSubscribed: boolean; // To ensure we don't double-subscribe the host
+  combinedInterests: string[];
+  currentQuestionChosenInterest: string;
+  currentQuestionChosenType: string;
   setGameId: (id: string) => void;
   setHostId: (id: string) => void;
   setParticipantIds: (ids: string[]) => void;
@@ -50,7 +53,9 @@ type GameStore = {
     (newLevel: number) => Promise<void>
   >;
   storeUpdatePocketLevel: (newLevel: number) => void;
-  setCurrentQuestion: (q: string) => void;
+  storeSetCurrentQuestion: (q: string) => void;
+  storeSetCurrentQuestionChosenInterest: (interest: string) => void;
+  storeSetCurrentQuestionChosenType: (type: string) => void;
 };
 
 export const useGameStore = create<GameStore>((set, get) => ({
@@ -60,9 +65,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
   loading: false,
   hostId: null,
   isHost: false, // To track whether the user is the host
-  currentQuestion: "...",
-  questionTypes: ["getToKnowEachother"],
+  currentQuestion: "",
+  questionTypes: ["get to know eachother", "scenarios"],
   pocketLevel: 3,
+  combinedInterests: [],
+  currentQuestionChosenInterest: "",
+  currentQuestionChosenType: "",
   hasPusherSubscribed: false, // To ensure we don't double-subscribe the host
   setGameId: (id) => set({ gameId: id }),
   setHostId: (id) => set({ hostId: id }),
@@ -164,14 +172,31 @@ export const useGameStore = create<GameStore>((set, get) => ({
       const { id: userId } = await actionGetAuthedUserInfo();
 
       if (activeGameId) {
+        // Set isHost
         const game = await actionGetGameDetails(activeGameId);
         set({ isHost: game.hostId === userId });
 
-        // Fetch participants
+        // Fetch participants via participantIds
         const { participantIds } = useGameStore.getState();
         const participantsData = await Promise.all(
           participantIds.map((id) => actionGetUserInfo(id))
         );
+
+        // Derive combinedInterests
+        const deriveCombinedInterests = (
+          participantsData: User[]
+        ): string[] => {
+          const interestsSet = new Set<string>();
+          participantsData.forEach((participant) => {
+            participant.interests.forEach((interest: string) => {
+              interestsSet.add(interest);
+            });
+          });
+          return Array.from(interestsSet);
+        };
+        const combinedInterests = deriveCombinedInterests(participantsData);
+
+        // Set other game attributes
         set({
           gameId: game.id,
           hostId: game.hostId,
@@ -180,6 +205,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
           participants: participantsData,
           questionTypes: game.questionTypes,
           pocketLevel: game.pocketLevel,
+          combinedInterests: combinedInterests,
         });
 
         // Set up Pusher for the host immediately to receive real-time updates
@@ -258,7 +284,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
       set({ loading: false });
     }
   },
-  setCurrentQuestion: (question) => set({ currentQuestion: question }),
+  storeSetCurrentQuestion: (question) => set({ currentQuestion: question }),
+
   // Debounced API call for updating question types
   debouncedUpdateQuestionTypes: debounce(async (newTypes) => {
     const { gameId } = get();
@@ -266,15 +293,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
     await actionUpdateQuestionTypes(gameId, newTypes);
     toast.success("Question types changed");
   }, 1000),
-
-  // Debounced API call for updating pocket level
-  debouncedUpdatePocketLevel: debounce(async (newLevel) => {
-    const { gameId } = get();
-    if (!gameId) return;
-    await actionUpdatePocketLevel(gameId, newLevel);
-    toast.success("Pocket level changed");
-  }, 500),
-
   // Store update for question types with immediate state change and debounced API call
   storeUpdateQuestionTypes: (newTypes) => {
     const { isHost } = get();
@@ -290,6 +308,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
     get().debouncedUpdateQuestionTypes(newTypes);
   },
 
+  // Debounced API call for updating pocket level
+  debouncedUpdatePocketLevel: debounce(async (newLevel) => {
+    const { gameId } = get();
+    if (!gameId) return;
+    await actionUpdatePocketLevel(gameId, newLevel);
+    toast.success("Pocket level changed");
+  }, 500),
   // Store update for pocket level with immediate state change and debounced API call
   storeUpdatePocketLevel: (newLevel) => {
     const { isHost } = get();
@@ -303,5 +328,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     // Trigger the debounced server-side update
     get().debouncedUpdatePocketLevel(newLevel);
+  },
+  storeSetCurrentQuestionChosenInterest: (question) => {
+    set({ currentQuestionChosenInterest: question });
+  },
+  storeSetCurrentQuestionChosenType: (type) => {
+    set({ currentQuestionChosenType: type });
   },
 }));

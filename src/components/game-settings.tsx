@@ -13,8 +13,6 @@ import {
 import { Button } from "./ui/button";
 import { ChevronsUpDown } from "lucide-react";
 import { useGameStore } from "@/stores/gameStore";
-import { debounce } from "lodash";
-import { actionGetAuthedUserInfo } from "@/actions/user-actions";
 import toast from "react-hot-toast";
 
 export function GameSettings() {
@@ -32,9 +30,7 @@ export function GameSettings() {
         toast.error("Only the host can change the game settings");
         return;
       }
-
-      // Directly call the store update function, debouncing is handled in the store
-      updateFn(value);
+      updateFn(value); // Debouncing is handled in the store
     };
   };
 
